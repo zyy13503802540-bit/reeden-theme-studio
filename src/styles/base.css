@@ -790,11 +790,13 @@ details.config-block pre {
     left: 50%; transform: translateX(-50%);
     z-index: 60; background: rgba(255,255,255,.92); backdrop-filter: blur(12px);
     border: 1px solid var(--line); border-radius: var(--pill);
-    box-shadow: var(--shadow-2); padding: 4px; gap: 2px;
+    box-shadow: var(--shadow-2); padding: 3px; gap: 3px;
+    max-width: calc(100vw - 32px);
   }
   .mobile-tabs button {
-    height: 38px; padding: 0 22px; border-radius: var(--pill);
+    height: 38px; padding: 0 16px; border-radius: var(--pill);
     font-size: 13px; font-weight: 650; color: var(--ink-2);
+    white-space: nowrap; flex-shrink: 0;
   }
   .mobile-tabs button.active { background: var(--accent); color: #fff; }
   body { padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
