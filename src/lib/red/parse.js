@@ -120,6 +120,37 @@ async function scanZip(buf, zipOffset, shouldCancel) {
   return { assets, skipped: 0 }
 }
 
+/** 解析 v1 阅读主题：RED\x01 + gzip(单个 JSON)，type=readerColorSchema。
+ * 每个配色方案一个 JSON 资产；内嵌背景图是 base64(gzip(图片))，解码为图片资产 */
+async function scanGzipJson(buf, shouldCancel) {
+  const gunzip = async b =>
+    new Uint8Array(await new Response(
+      new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))
+    ).arrayBuffer())
+  const plain = await gunzip(buf)
+  const root = JSON.parse(utf8(plain))
+  if (root.type !== 'readerColorSchema' || !Array.isArray(root.data)) {
+    throw new Error(`暂不支持的 v1 主题类型：${root.type || '未知'}`)
+  }
+  const assets = []
+  const encoder = new TextEncoder()
+  for (const schema of root.data) {
+    if (shouldCancel?.()) throw makeCancel()
+    if (typeof schema.backgroundImageData === 'string' && schema.backgroundImageData) {
+      try {
+        const packed = Uint8Array.from(atob(schema.backgroundImageData), c => c.charCodeAt(0))
+        const imgBytes = await gunzip(packed)
+        const hit = sniff(imgBytes, 0)
+        if (hit?.kind === 'image') {
+          assets.push(await makeAsset(imgBytes, hit.mime, 'image', '', shouldCancel))
+        }
+      } catch { /* 背景图损坏不阻断主题导入 */ }
+    }
+    assets.push(await makeAsset(encoder.encode(JSON.stringify(schema)), 'application/json', 'json', '', shouldCancel))
+  }
+  return { assets, skipped: 0 }
+}
+
 /**
  * 解析一个 .red 文件
  * @returns {Promise<{header:object, assets:Array, warnings:string[]}>}
@@ -130,7 +161,11 @@ export async function parseRedBytes(bytes, { shouldCancel, onProgress } = {}) {
   let header
   let result
 
-  if (bytes[3] === 0x04 && matches(bytes, 4, 'PK\x03\x04')) {
+  if (bytes[3] === 0x01) {
+    header = { version: 1, container: 'gzip-json' }
+    onProgress?.('正在解压阅读主题…')
+    result = await scanGzipJson(bytes.subarray(4), shouldCancel)
+  } else if (bytes[3] === 0x04 && matches(bytes, 4, 'PK\x03\x04')) {
     header = { version: 4, container: 'zip' }
     onProgress?.('正在解压 ZIP 资源…')
     // RED\x04（4 字节）前缀之后才是 ZIP 数据，ZIP 内部偏移需加上该前缀

@@ -143,6 +143,7 @@ export async function analyzeTheme({ fileName, size, header, assets, warnings })
   const highlightRules = []
   jsonAssets.forEach(asset => {
     let mode = asset.data?.themeMode || null
+    if (mode === 'common') mode = null // v1 阅读主题的 common 表示日夜共用，视作共享规则
     if (!mode && readerAssets.includes(asset) && readerAssets.length >= 2) {
       // 与 theme-ui.readerConfig 的回退约定一致：首个 reader 日间，末个 reader 夜间
       mode = readerAssets.indexOf(asset) === 0 ? 'light' : 'dark'

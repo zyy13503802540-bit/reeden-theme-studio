@@ -20,7 +20,6 @@ globalThis.createImageBitmap = async (blob) => {
   }
   return { width, height, close() {} }
 }
-globalThis.DecompressionStream = class {}
 
 const { parseRedBytes } = await import('../src/lib/red/parse.js')
 const { analyzeTheme } = await import('../src/lib/red/analyze.js')
