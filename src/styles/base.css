@@ -757,8 +757,17 @@ details.config-block pre {
 }
 
 @media (max-width: 760px) {
-  .topbar { padding: 12px 14px; gap: 10px; }
-  .brand-sub, .search-box, .sync-badge .badge-text { display: none; }
+  /* 顶栏两行：品牌 + 操作按钮一行，搜索框独占一行 */
+  .topbar { flex-wrap: wrap; padding: 10px 12px; gap: 8px; }
+  .brand { flex-shrink: 0; }
+  .brand-sub, .sync-badge .badge-text { display: none; }
+  .topbar-spacer { display: none; }
+  .search-box {
+    order: 10; flex: 1 1 100%; max-width: none;
+    padding: 7px 14px;
+  }
+  /* 操作按钮收紧，导入按钮保持主色 */
+  .topbar .btn { height: 36px; padding: 0 12px; font-size: 12.5px; }
   .workspace { display: block; padding: 12px; }
   .library, .detail, .stage-column { position: static; max-height: none; margin-bottom: 14px; }
   .stage { min-height: auto; padding: 18px 10px 24px; }
@@ -768,16 +777,39 @@ details.config-block pre {
   .workspace[data-mobile='preview'] .detail,
   .workspace[data-mobile='detail'] .library,
   .workspace[data-mobile='detail'] .stage-column { display: none; }
+  /* 手机样机随屏宽等比缩小（内部绝对布局不受影响） */
+  .phone {
+    width: min(300px, calc(100vw - 56px));
+    height: auto;
+    aspect-ratio: 300 / 632;
+  }
+  /* 底部标签栏避开刘海屏安全区 */
   .mobile-tabs {
-    display: flex; position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+    display: flex; position: fixed;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    left: 50%; transform: translateX(-50%);
     z-index: 60; background: rgba(255,255,255,.92); backdrop-filter: blur(12px);
     border: 1px solid var(--line); border-radius: var(--pill);
     box-shadow: var(--shadow-2); padding: 4px; gap: 2px;
   }
   .mobile-tabs button {
-    height: 34px; padding: 0 20px; border-radius: var(--pill);
-    font-size: 12.5px; font-weight: 650; color: var(--ink-2);
+    height: 38px; padding: 0 22px; border-radius: var(--pill);
+    font-size: 13px; font-weight: 650; color: var(--ink-2);
   }
   .mobile-tabs button.active { background: var(--accent); color: #fff; }
-  body { padding-bottom: 70px; }
+  body { padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
+  /* 弹窗收紧 */
+  .overlay { padding: 12px; }
+  .dialog { padding: 20px 16px; border-radius: 18px; }
+  .dialog-actions { flex-wrap: wrap; gap: 8px; }
+  .remote-row { flex-wrap: wrap; row-gap: 6px; }
+  /* 触控优化：去点按高亮，按钮加大 */
+  * { -webkit-tap-highlight-color: transparent; }
+  .btn { min-height: 40px; }
+  .btn-sm { min-height: 34px; }
+}
+
+/* 极窄屏（≤400px）：只留品牌图标，隐藏文字标题 */
+@media (max-width: 400px) {
+  .brand-title { display: none; }
 }
