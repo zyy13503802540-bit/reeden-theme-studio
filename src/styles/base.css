@@ -502,9 +502,18 @@ details.config-block pre {
 .book-card .bcover {
   width: 46px; height: 64px; border-radius: 6px; flex-shrink: 0;
   background-size: cover; background-position: center;
-  box-shadow: 0 3px 8px rgba(0,0,0,.15);
   display: grid; place-items: center;
   overflow: hidden;
+}
+.book-card .bcover.has-cover {
+  box-shadow: 0 3px 8px rgba(0,0,0,.15);
+}
+.book-card .bcover.transparent-opt {
+  border-radius: 0;
+  overflow: visible;
+  background-size: contain;
+  background-repeat: no-repeat;
+  box-shadow: none;
 }
 .book-card .bcover .bcover-ph { font-size: 15px; font-weight: 800; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.3); }
 .book-card .binfo { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
@@ -531,6 +540,12 @@ details.config-block pre {
   background-size: cover;
   background-position: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.cover-gallery-row .cg-item.transparent-opt {
+  border-radius: 0;
+  box-shadow: none;
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 .phone-navbar {

@@ -53,12 +53,10 @@ const coverImages = computed(() => {
   return imagesByRole(theme.value, '封面图库').map(a => a.url)
 })
 const heroCover = computed(() => coverImages.value[0] || '')
-// 封面图库 meta 的 transparentOptimization：开启时封面含透明区域，
-// 预览直接让封面透明显示（透出卡片背景），否则透明处透出默认灰色占位底显脏
-const coverBg = computed(() =>
+// 封面图库 meta 的 transparentOptimization：开启时封面是透明 PNG 贴纸样式，
+// 去掉容器底色/圆角/阴影/裁剪，让贴纸自然融入背景
+const isTransparentOpt = computed(() =>
   (theme.value?.galleries || []).some(g => g?.transparentOptimization === true)
-    ? 'transparent'
-    : ''
 )
 // 主卡片占第一张封面，其余封面最多展示 6 个，超出部分随机抽取
 const galleryCovers = computed(() => {
@@ -427,8 +425,9 @@ const pagerIndex = computed(() => {
                 >
                   <div
                     class="bcover"
+                    :class="{ 'has-cover': !!book.cover, 'transparent-opt': isTransparentOpt }"
                     :style="book.cover
-                      ? { backgroundImage: `url(${book.cover})`, backgroundColor: coverBg || undefined }
+                      ? { backgroundImage: `url(${book.cover})` }
                       : { backgroundColor: '#cdd6d2' }"
                   >
                     <span v-if="!book.cover" class="bcover-ph">绿</span>
@@ -451,7 +450,8 @@ const pagerIndex = computed(() => {
                     v-for="(url, i) in galleryCovers"
                     :key="i"
                     class="cg-item"
-                    :style="{ backgroundImage: `url(${url})`, backgroundColor: coverBg || undefined }"
+                    :class="{ 'transparent-opt': isTransparentOpt }"
+                    :style="{ backgroundImage: `url(${url})` }"
                     :title="`封面 ${i + 2}`"
                   />
                 </div>
