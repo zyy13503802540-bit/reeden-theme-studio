@@ -227,7 +227,7 @@ export async function analyzeTheme({ fileName, size, header, assets, warnings })
     const nearlySquare = image => {
       if (!image.width || !image.height) return true // 读不到尺寸时不阻止
       const ratio = Math.abs(image.width - image.height) / Math.max(image.width, image.height)
-      return ratio < 0.15
+      return ratio < 0.35 // 放宽阈值，允许短剧 App 的矩形 tab 图标（如 256×171，差 33%）
     }
     const eligible = image =>
       image.type === 'image'
@@ -272,34 +272,6 @@ export async function analyzeTheme({ fileName, size, header, assets, warnings })
       image.role = '底栏图标'
       image.confidence = 'inferred'
       if (claim.meta._navMode) image._navMode = claim.meta._navMode
-    }
-  }
-
-  // 2.8) 底栏图标清单：byType 包可能附带 [{url:<md5>, file:"000.img"}, …] 形式的
-  // 清单 JSON，url 即图标图片哈希。加密顺序包（如红果短剧）里图标与 navMeta 不相邻，
-  // 只能靠清单哈希直接定位；清单里的 hash 会被 referencedHashes 拦截，必须在此直接赋值
-  const navManifests = jsonAssets.filter(a =>
-    Array.isArray(a.data) && a.data.length > 0 &&
-    a.data.every(e => e && typeof e === 'object' && HASH_32.test(e.url || '') && typeof e.file === 'string')
-  )
-  for (const manifest of navManifests) {
-    // 归属最近的 navMeta 的模式；无 meta 时缺省日间
-    const mi = assets.indexOf(manifest)
-    let nearestMeta = null
-    let nearestDist = Infinity
-    for (const meta of sequentialNavMetas) {
-      const d = Math.abs(assets.indexOf(meta) - mi)
-      if (d < nearestDist) { nearestDist = d; nearestMeta = meta }
-    }
-    const mode = nearestMeta?._navMode || 'light'
-    manifest.role = '底栏配置'
-    for (const entry of manifest.data) {
-      const target = imageByHash.get(entry.url.toUpperCase())
-      if (target && (target.role === '未分类' || target.confidence === 'inferred')) {
-        target.role = '底栏图标'
-        target.confidence = 'manifest'
-        target._navMode = mode
-      }
     }
   }
 
