@@ -166,15 +166,28 @@ export async function parseRedBytes(bytes, { shouldCancel, onProgress } = {}) {
     onProgress?.('正在解压阅读主题…')
     result = await scanGzipJson(bytes.subarray(4), shouldCancel)
   } else if (bytes[3] === 0x10) {
-    // Reeden 私有加密资源包（高亮规则/标题样式等）：除头部外全部为 AES-256-GCM 密文，
-    // 密钥由 Reeden App 私有持有，无法解密 —— 不解析内容，作为"加密存档"入库保留原始文件
+    // Reeden 私有容器（reedenPrivate）：清单区被 AES-256-GCM 加密。
+    // 两种形态：
+    //   a) themeBundle 应用主题——清单加密但资源区是明文，照常扫描资源（红果/雨季等）
+    //   b) highlightRule/readerTitleStyle 等资源包——密文吃完整个文件，无资源区，按加密存档处理
     let h = {}
     try {
       const headerLen = u32be(bytes, 4)
       h = JSON.parse(utf8(bytes.subarray(8, 8 + headerLen)))
-    } catch { /* 头部不可读也按加密存档处理 */ }
-    header = { ...h, version: h.version ?? 2, container: 'reedenPrivate' }
-    return { header, assets: [], warnings: [], encrypted: true }
+      const payloadStart = 8 + headerLen + Number(h.manifestLength || 0)
+      if (payloadStart < bytes.length) {
+        header = { ...h, container: 'reedenPrivate' }
+        onProgress?.('正在扫描顺序资源…')
+        result = await scanSequential(bytes, payloadStart, shouldCancel)
+      } else {
+        header = { ...h, version: h.version ?? 2, container: 'reedenPrivate' }
+        return { header, assets: [], warnings: [], encrypted: true }
+      }
+    } catch (e) {
+      if (e.cancelled) throw e
+      header = { ...h, version: h.version ?? 2, container: 'reedenPrivate' }
+      return { header, assets: [], warnings: [], encrypted: true }
+    }
   } else if (bytes[3] === 0x04 && matches(bytes, 4, 'PK\x03\x04')) {
     header = { version: 4, container: 'zip' }
     onProgress?.('正在解压 ZIP 资源…')
