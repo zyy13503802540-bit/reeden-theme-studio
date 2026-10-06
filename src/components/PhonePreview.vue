@@ -53,6 +53,13 @@ const coverImages = computed(() => {
   return imagesByRole(theme.value, '封面图库').map(a => a.url)
 })
 const heroCover = computed(() => coverImages.value[0] || '')
+// 封面图库 meta 的 transparentOptimization：开启时封面含透明区域，
+// 阅读 App 会在封面下垫白底优化显示，预览同步垫白底（否则透明处透出灰色占位底显脏）
+const coverWhiteBg = computed(() =>
+  (theme.value?.galleries || []).some(g => g?.transparentOptimization === true)
+    ? '#ffffff'
+    : ''
+)
 // 主卡片占第一张封面，其余封面最多展示 6 个，超出部分随机抽取
 const galleryCovers = computed(() => {
   const rest = coverImages.value.slice(1)
@@ -420,7 +427,7 @@ const pagerIndex = computed(() => {
                 >
                   <div
                     class="bcover"
-                    :style="book.cover ? { backgroundImage: `url(${book.cover})` } : {}"
+                    :style="book.cover ? { backgroundImage: `url(${book.cover})`, backgroundColor: coverWhiteBg || undefined } : {}"
                   >
                     <span v-if="!book.cover" class="bcover-ph">绿</span>
                   </div>
@@ -442,7 +449,7 @@ const pagerIndex = computed(() => {
                     v-for="(url, i) in galleryCovers"
                     :key="i"
                     class="cg-item"
-                    :style="{ backgroundImage: `url(${url})` }"
+                    :style="{ backgroundImage: `url(${url})`, backgroundColor: coverWhiteBg || undefined }"
                     :title="`封面 ${i + 2}`"
                   />
                 </div>
