@@ -117,25 +117,42 @@ async function getHead(config) {
   }
 }
 
-/** 把一组 tree 条目提交到 main 分支（条目 sha 为 null 表示删除该路径） */
+/** 把一组 tree 条目提交到 main 分支（条目 sha 为 null 表示删除该路径）。
+ *  多设备并发同步同一仓库时，读 HEAD 到移动引用之间引用可能已被另一台设备更新，
+ *  PATCH 引用会 422 "not a fast forward" —— 重新读取 HEAD 重建 tree/commit 后重试 */
 async function commitTreeEntries(config, entries, message) {
   const base = `/repos/${config.owner}/${config.repo}`
-  const head = await getHead(config)
+  let lastErr = null
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const head = await getHead(config)
+    try {
+      const treeBody = { tree: entries }
+      if (head) treeBody.base_tree = head.baseTree
+      const tree = await gh(config, `${base}/git/trees`, { method: 'POST', body: JSON.stringify(treeBody) })
 
-  const treeBody = { tree: entries }
-  if (head) treeBody.base_tree = head.baseTree
-  const tree = await gh(config, `${base}/git/trees`, { method: 'POST', body: JSON.stringify(treeBody) })
+      const commitBody = { message, tree: tree.sha }
+      if (head) commitBody.parents = [head.headSha]
+      const commit = await gh(config, `${base}/git/commits`, { method: 'POST', body: JSON.stringify(commitBody) })
 
-  const commitBody = { message, tree: tree.sha }
-  if (head) commitBody.parents = [head.headSha]
-  const commit = await gh(config, `${base}/git/commits`, { method: 'POST', body: JSON.stringify(commitBody) })
-
-  if (head) {
-    await gh(config, `${base}/git/refs/heads/main`, { method: 'PATCH', body: JSON.stringify({ sha: commit.sha }) })
-  } else {
-    await gh(config, `${base}/git/refs`, { method: 'POST', body: JSON.stringify({ ref: 'refs/heads/main', sha: commit.sha }) })
+      if (head) {
+        await gh(config, `${base}/git/refs/heads/main`, { method: 'PATCH', body: JSON.stringify({ sha: commit.sha }) })
+      } else {
+        try {
+          await gh(config, `${base}/git/refs`, { method: 'POST', body: JSON.stringify({ ref: 'refs/heads/main', sha: commit.sha }) })
+        } catch (err) {
+          // 引用已存在（并发创建了首个 commit）：转为走 PATCH 重试
+          if (err.status === 422) throw Object.assign(new Error('Update is not a fast forward'), { status: 422 })
+          throw err
+        }
+      }
+      return { updated: !!head }
+    } catch (err) {
+      lastErr = err
+      if (err.status === 422 && /fast.?forward|reference/i.test(String(err.message))) continue
+      throw err
+    }
   }
-  return { updated: !!head }
+  throw lastErr
 }
 
 /** 中文件：单个 blob 落盘 */
