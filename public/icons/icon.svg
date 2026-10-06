@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- 奶油底色圆角方块 -->
+  <rect width="512" height="512" rx="112" fill="#FAF2E7"/>
+  <!-- 手机外框 -->
+  <rect x="156" y="96" width="200" height="320" rx="36" fill="#0D9488"/>
+  <rect x="172" y="128" width="168" height="256" rx="16" fill="#FFFFFF"/>
+  <!-- 手机听筒 -->
+  <rect x="226" y="108" width="60" height="10" rx="5" fill="#0B766E"/>
+  <!-- 屏幕上的打开的书 -->
+  <path d="M196 196c22-10 44-10 60 2v118c-16-12-38-12-60-2V196z" fill="#F59E9C"/>
+  <path d="M316 196c-22-10-44-10-60 2v118c16-12 38-12 60-2V196z" fill="#F7C9C6"/>
+  <!-- 书页线 -->
+  <path d="M206 214c14-6 28-6 40 0M206 236c14-6 28-6 40 0M206 258c14-6 28-6 40 0" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M266 214c14-6 28-6 40 0M266 236c14-6 28-6 40 0M266 258c14-6 28-6 40 0" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <!-- 屏幕底部横条 -->
+  <rect x="236" y="356" width="40" height="8" rx="4" fill="#0D9488"/>
+</svg>

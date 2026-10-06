@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Reeden Theme Studio</string>
+    <string name="title_activity_main">Reeden Theme Studio</string>
+    <string name="package_name">com.reeden.themestudio</string>
+    <string name="custom_url_scheme">com.reeden.themestudio</string>
+</resources>
