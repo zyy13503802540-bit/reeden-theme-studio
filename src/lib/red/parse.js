@@ -4,7 +4,7 @@
 //   2) "RED" + 0x04 + ZIP(本地文件头 PK\x03\x04) —— REDv4 变体
 import { matches, u32be, utf8 } from './binary.js'
 import { md5 } from './md5.js'
-import { sniff, nextResource, imageSize, hexPreview, classifyMagic, isMonochromeSvg } from './media.js'
+import { sniff, nextResource, imageSize, hexPreview, classifyMagic, isMonochromeSvg, hasAlphaChannel } from './media.js'
 import { unzip } from './zip.js'
 
 const MIME_BY_EXT = [
@@ -39,6 +39,8 @@ async function makeAsset(bytes, mime, type, path = '', shouldCancel) {
     Object.assign(asset, sizeInfo)
     // 单色 SVG 图标（如 26个字母的纯黑图标）标记出来，预览用 CSS mask 染主题色
     if (mime === 'image/svg+xml') asset.mono = isMonochromeSvg(bytes)
+    // 检测透明通道：透明 PNG 封面用贴纸样式，不透明 JPEG 用圆角卡片样式
+    asset.hasAlpha = hasAlphaChannel(bytes, mime)
     if (shouldCancel?.()) throw makeCancel()
   } else {
     try {

@@ -505,7 +505,7 @@ details.config-block pre {
   display: grid; place-items: center;
   overflow: hidden;
 }
-.book-card .bcover.has-cover {
+.book-card .bcover.has-cover:not(.transparent-opt) {
   box-shadow: 0 3px 8px rgba(0,0,0,.15);
 }
 .book-card .bcover.transparent-opt {

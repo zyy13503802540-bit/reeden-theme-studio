@@ -111,6 +111,25 @@ export function jsonEnd(buf, start) {
   throw new Error('JSON 数据不完整')
 }
 
+/** 检测图片是否带透明通道（PNG colorType 4/6 或 tRNS 块；WEBP 有 alpha 块；JPEG/GIF 默认无） */
+export function hasAlphaChannel(buf, mime) {
+  if (mime === 'image/png' && buf.length > 26) {
+    const colorType = buf[25]
+    if (colorType === 4 || colorType === 6) return true
+    // 检查 tRNS 块（palette 透明）
+    for (let p = 8; p < Math.min(buf.length - 4, 200); p++) {
+      if (buf[p] === 0x74 && buf[p+1] === 0x52 && buf[p+2] === 0x4e && buf[p+3] === 0x53) return true // 'tRNS'
+    }
+  }
+  if (mime === 'image/webp' && buf.length > 30) {
+    // VP8X 头有 alpha 标志位
+    if (buf[12] === 0x56 && buf[13] === 0x50 && buf[14] === 0x38 && buf[15] === 0x58) { // 'VP8X'
+      return (buf[20] & 0x10) !== 0
+    }
+  }
+  return false
+}
+
 /** SVG：定位结束标签 </svg>，返回结束偏移（exclusive）；找不到则抛错 */
 export function svgEnd(buf, start) {
   const probe = 2048

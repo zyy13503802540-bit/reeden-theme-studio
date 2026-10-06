@@ -52,15 +52,24 @@ const coverImages = computed(() => {
   // 严格只取识别为"封面图库"的图片，绝不能把头图/阅读背景当封面
   return imagesByRole(theme.value, '封面图库').map(a => a.url)
 })
+// 封面资产（带 hasAlpha 标记）：透明 PNG 用贴纸样式，不透明 JPEG 用圆角卡片
+const coverAssets = computed(() => {
+  if (!theme.value) return []
+  return imagesByRole(theme.value, '封面图库')
+})
 const heroCover = computed(() => coverImages.value[0] || '')
 // 封面图库 meta 的 transparentOptimization：开启时封面是透明 PNG 贴纸样式，
 // 去掉容器底色/圆角/阴影/裁剪，让贴纸自然融入背景
 const isTransparentOpt = computed(() =>
   (theme.value?.galleries || []).some(g => g?.transparentOptimization === true)
 )
+// 判断单个封面是否应该用贴纸样式（透明优化开启 且 图片本身有透明通道）
+function isStickerCover(asset) {
+  return isTransparentOpt.value && asset?.hasAlpha === true
+}
 // 主卡片占第一张封面，其余封面最多展示 6 个，超出部分随机抽取
 const galleryCovers = computed(() => {
-  const rest = coverImages.value.slice(1)
+  const rest = coverAssets.value.slice(1) // 保留资产对象以访问 hasAlpha
   if (rest.length <= 6) return rest
   const arr = [...rest]
   for (let i = arr.length - 1; i > 0; i--) {
@@ -425,7 +434,7 @@ const pagerIndex = computed(() => {
                 >
                   <div
                     class="bcover"
-                    :class="{ 'has-cover': !!book.cover, 'transparent-opt': isTransparentOpt }"
+                    :class="{ 'has-cover': !!book.cover, 'transparent-opt': isStickerCover(coverAssets[0]) }"
                     :style="book.cover
                       ? { backgroundImage: `url(${book.cover})` }
                       : { backgroundColor: '#cdd6d2' }"
@@ -447,11 +456,11 @@ const pagerIndex = computed(() => {
                 <!-- 其余封面图库展示：紧贴卡片下方，最多 6 个，超出随机 -->
                 <div v-if="galleryCovers.length" class="cover-gallery-row">
                   <div
-                    v-for="(url, i) in galleryCovers"
+                    v-for="(asset, i) in galleryCovers"
                     :key="i"
                     class="cg-item"
-                    :class="{ 'transparent-opt': isTransparentOpt }"
-                    :style="{ backgroundImage: `url(${url})` }"
+                    :class="{ 'transparent-opt': isStickerCover(asset) }"
+                    :style="{ backgroundImage: `url(${asset.url})` }"
                     :title="`封面 ${i + 2}`"
                   />
                 </div>
