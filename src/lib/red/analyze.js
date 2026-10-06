@@ -104,7 +104,7 @@ export function normalizeLayout(reader) {
 /**
  * 将解析出的原始资源整理为主题模型
  */
-export async function analyzeTheme({ fileName, size, header, assets, warnings }) {
+export async function analyzeTheme({ fileName, size, header, assets, warnings, encrypted = false }) {
   const jsonAssets = assets.filter(a => a.type === 'json' && a.data)
   const imageAssets = assets.filter(a => a.type === 'image')
   const imageByHash = new Map(imageAssets.map(a => [a.hash, a]))
@@ -355,7 +355,7 @@ export async function analyzeTheme({ fileName, size, header, assets, warnings })
   let resourceKind = ''
   if (!appAsset) {
     resourceKind =
-      highlightRules.length || /高亮|highlight/.test(haystack)
+      encrypted || highlightRules.length || /高亮|highlight/.test(haystack)
         ? '高亮规则'
         : /标题|title.?style|chapter.?title|heading/.test(haystack)
           ? '标题样式'
@@ -363,13 +363,18 @@ export async function analyzeTheme({ fileName, size, header, assets, warnings })
             ? '内页样式'
             : '独立配置'
   }
+  // 加密包按 header.resourceType 精确归类（标题样式包的 resourceType 是 readerTitleStyle）
+  if (encrypted && /title/i.test(String(header?.resourceType || ''))) resourceKind = '标题样式'
 
   return {
     fileName,
     size,
     title,
     header,
-    warnings,
+    warnings: encrypted
+      ? [...(warnings || []), 'Reeden 私有加密包（AES-256-GCM），内容无法解析，仅存档原始文件']
+      : warnings,
+    encrypted,
     isResourceOnly: !appAsset,
     resourceKind,
     app: appAsset?.data || null,

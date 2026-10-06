@@ -26,6 +26,7 @@ function thumbOf(theme) {
 
 function descOf(theme) {
   const imageCount = theme.assets.filter(a => a.type === 'image').length
+  if (theme.encrypted) return `${theme.resourceKind} · 加密存档`
   if (theme.isResourceOnly) {
     return `${theme.resourceKind} · ${theme.assets.filter(a => a.type === 'json').length} 份配置`
   }

@@ -167,20 +167,14 @@ export async function parseRedBytes(bytes, { shouldCancel, onProgress } = {}) {
     result = await scanGzipJson(bytes.subarray(4), shouldCancel)
   } else if (bytes[3] === 0x10) {
     // Reeden 私有加密资源包（高亮规则/标题样式等）：除头部外全部为 AES-256-GCM 密文，
-    // 密钥由 Reeden App 私有持有，无法解密，给出明确提示而不是"头长度异常"
-    const TYPE_NAMES = {
-      highlightRule: '高亮规则',
-      readerTitleStyle: '标题样式',
-      readerColorSchema: '阅读主题',
-      navbarPack: '底栏图标包'
-    }
-    let typeName = '资源'
+    // 密钥由 Reeden App 私有持有，无法解密 —— 不解析内容，作为"加密存档"入库保留原始文件
+    let h = {}
     try {
       const headerLen = u32be(bytes, 4)
-      const h = JSON.parse(utf8(bytes.subarray(8, 8 + headerLen)))
-      typeName = TYPE_NAMES[h.resourceType] || h.resourceType || typeName
-    } catch { /* 头部不可读也用通用提示 */ }
-    throw new Error(`这是 Reeden 私有加密的${typeName}包（容器已被 AES-256-GCM 加密），暂不支持导入预览。可导入应用主题（.red）或阅读主题。`)
+      h = JSON.parse(utf8(bytes.subarray(8, 8 + headerLen)))
+    } catch { /* 头部不可读也按加密存档处理 */ }
+    header = { ...h, version: h.version ?? 2, container: 'reedenPrivate' }
+    return { header, assets: [], warnings: [], encrypted: true }
   } else if (bytes[3] === 0x04 && matches(bytes, 4, 'PK\x03\x04')) {
     header = { version: 4, container: 'zip' }
     onProgress?.('正在解压 ZIP 资源…')

@@ -24,9 +24,9 @@ function shuffleText() {
 }
 
 const theme = computed(() => state.activeTheme)
-// 独立配置资源（阅读主题等）：无书架/启动页配置，强制在阅读页预览
+// 独立配置资源（阅读主题等）：无书架/启动页配置，强制在阅读页预览（加密存档包除外，无内容可预览）
 const isResourceOnly = computed(() => !!theme.value?.isResourceOnly)
-watch(isResourceOnly, v => { if (v) state.page = 'reader' })
+watch(isResourceOnly, v => { if (v && theme.value?.readers?.length) state.page = 'reader' })
 // 主题实际包含的模式（日间/夜间可能是两套完全不同的配置）；夜间缺失时禁用切换并回退日间
 const availableModes = computed(() => themeModes(theme.value))
 watch(availableModes, modes => {
@@ -336,6 +336,12 @@ const pagerIndex = computed(() => {
       <div v-if="!theme" class="stage-empty">
         <span class="big">▣</span>
         <div>导入应用主题后，这里会出现手机预览</div>
+      </div>
+
+      <div v-else-if="theme.encrypted" class="stage-empty">
+        <span class="big">🔒</span>
+        <div style="margin-bottom:6px">这是一个 Reeden 私有加密的{{ theme.resourceKind || '资源' }}包</div>
+        <div style="font-size:12px">已存档原始文件（可导出/同步），内容被 AES-256-GCM 加密，无法预览</div>
       </div>
 
       <div v-else class="phone-wrap">

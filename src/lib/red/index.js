@@ -10,7 +10,8 @@ export async function parseRedFile(file, hooks = {}) {
     size: file.size,
     header: parsed.header,
     assets: parsed.assets,
-    warnings: parsed.warnings
+    warnings: parsed.warnings,
+    encrypted: !!parsed.encrypted
   })
 }
 
