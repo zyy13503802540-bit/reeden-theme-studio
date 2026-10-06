@@ -275,6 +275,34 @@ export async function analyzeTheme({ fileName, size, header, assets, warnings })
     }
   }
 
+  // 2.8) 底栏图标清单：byType 包可能附带 [{url:<md5>, file:"000.img"}, …] 形式的
+  // 清单 JSON，url 即图标图片哈希。加密顺序包（如红果短剧）里图标与 navMeta 不相邻，
+  // 只能靠清单哈希直接定位；清单里的 hash 会被 referencedHashes 拦截，必须在此直接赋值
+  const navManifests = jsonAssets.filter(a =>
+    Array.isArray(a.data) && a.data.length > 0 &&
+    a.data.every(e => e && typeof e === 'object' && HASH_32.test(e.url || '') && typeof e.file === 'string')
+  )
+  for (const manifest of navManifests) {
+    // 归属最近的 navMeta 的模式；无 meta 时缺省日间
+    const mi = assets.indexOf(manifest)
+    let nearestMeta = null
+    let nearestDist = Infinity
+    for (const meta of sequentialNavMetas) {
+      const d = Math.abs(assets.indexOf(meta) - mi)
+      if (d < nearestDist) { nearestDist = d; nearestMeta = meta }
+    }
+    const mode = nearestMeta?._navMode || 'light'
+    manifest.role = '底栏配置'
+    for (const entry of manifest.data) {
+      const target = imageByHash.get(entry.url.toUpperCase())
+      if (target && (target.role === '未分类' || target.confidence === 'inferred')) {
+        target.role = '底栏图标'
+        target.confidence = 'manifest'
+        target._navMode = mode
+      }
+    }
+  }
+
   // 3) 配置 JSON 自身角色
   if (appAsset) appAsset.role = '应用主题配置'
   for (const a of readerAssets) a.role = '阅读配置'

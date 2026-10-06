@@ -1,6 +1,6 @@
 // PWA Service Worker：缓存优先，保证离线可用
 // 版本号升级时改 CACHE 名即可触发全量换缓存（activate 里清旧缓存）
-const CACHE = 'reeden-studio-v3'
+const CACHE = 'reeden-studio-v4'
 const CORE = [
   './',
   './index.html',
