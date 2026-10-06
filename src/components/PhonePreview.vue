@@ -427,7 +427,9 @@ const pagerIndex = computed(() => {
                 >
                   <div
                     class="bcover"
-                    :style="book.cover ? { backgroundImage: `url(${book.cover})`, backgroundColor: coverBg || undefined } : {}"
+                    :style="book.cover
+                      ? { backgroundImage: `url(${book.cover})`, backgroundColor: coverBg || undefined }
+                      : { backgroundColor: '#cdd6d2' }"
                   >
                     <span v-if="!book.cover" class="bcover-ph">绿</span>
                   </div>

@@ -501,7 +501,7 @@ details.config-block pre {
 .shelf.no-shelf-bg .book-card { backdrop-filter: none; box-shadow: 0 4px 14px rgba(0,0,0,.06); }
 .book-card .bcover {
   width: 46px; height: 64px; border-radius: 6px; flex-shrink: 0;
-  background: #cdd6d2; background-size: cover; background-position: center;
+  background-size: cover; background-position: center;
   box-shadow: 0 3px 8px rgba(0,0,0,.15);
   display: grid; place-items: center;
   overflow: hidden;
@@ -528,7 +528,6 @@ details.config-block pre {
 .cover-gallery-row .cg-item {
   aspect-ratio: 3/4;
   border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.35);
   background-size: cover;
   background-position: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
