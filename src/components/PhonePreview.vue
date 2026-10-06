@@ -24,6 +24,9 @@ function shuffleText() {
 }
 
 const theme = computed(() => state.activeTheme)
+// 独立配置资源（阅读主题等）：无书架/启动页配置，强制在阅读页预览
+const isResourceOnly = computed(() => !!theme.value?.isResourceOnly)
+watch(isResourceOnly, v => { if (v) state.page = 'reader' })
 // 主题实际包含的模式（日间/夜间可能是两套完全不同的配置）；夜间缺失时禁用切换并回退日间
 const availableModes = computed(() => themeModes(theme.value))
 watch(availableModes, modes => {
@@ -315,8 +318,8 @@ const pagerIndex = computed(() => {
       </div>
 
       <div class="seg">
-        <button :class="{ active: state.page === 'shelf' }" @click="state.page = 'shelf'">书架</button>
-        <button :class="{ active: state.page === 'splash' }" @click="state.page = 'splash'">启动页</button>
+        <button v-if="!isResourceOnly" :class="{ active: state.page === 'shelf' }" @click="state.page = 'shelf'">书架</button>
+        <button v-if="!isResourceOnly" :class="{ active: state.page === 'splash' }" @click="state.page = 'splash'">启动页</button>
         <button :class="{ active: state.page === 'reader' }" @click="state.page = 'reader'">阅读页</button>
       </div>
 
@@ -333,12 +336,6 @@ const pagerIndex = computed(() => {
       <div v-if="!theme" class="stage-empty">
         <span class="big">▣</span>
         <div>导入应用主题后，这里会出现手机预览</div>
-      </div>
-
-      <div v-else-if="theme.isResourceOnly" class="stage-empty">
-        <span class="big">⁂</span>
-        <div style="margin-bottom:6px">这是一个独立配置资源（{{ theme.resourceKind }}）</div>
-        <div style="font-size:12px">在右侧"详情"中查看其配置内容</div>
       </div>
 
       <div v-else class="phone-wrap">
@@ -361,7 +358,7 @@ const pagerIndex = computed(() => {
 
             <!-- 书架 -->
             <div
-              v-if="state.page === 'shelf'"
+              v-if="state.page === 'shelf' && !isResourceOnly"
               class="shelf"
               :class="{ 'no-shelf-bg': !shelfBg }"
               :style="{ color: inkColor }"
@@ -463,7 +460,7 @@ const pagerIndex = computed(() => {
             </div>
 
             <!-- 启动页 -->
-            <div v-else-if="state.page === 'splash'" class="splash">
+            <div v-else-if="state.page === 'splash' && !isResourceOnly" class="splash">
               <div
                 v-if="splashImage"
                 class="splash-bg"
