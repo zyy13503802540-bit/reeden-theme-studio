@@ -5,10 +5,12 @@ import LibraryPanel from './components/LibraryPanel.vue'
 import PhonePreview from './components/PhonePreview.vue'
 import DetailPanel from './components/DetailPanel.vue'
 import SettingsModal from './components/SettingsModal.vue'
+import ConverterModal from './components/ConverterModal.vue'
 import ProgressOverlay from './components/ProgressOverlay.vue'
 import { state, importFiles, clearAll, restoreFromStorage, refreshSyncBadge, removeTheme, retrySync, listRemoteThemes, toggleRemoteSelected, restoreFromGithub, deleteRemoteTheme } from './lib/store.js'
 
 const mobileTab = ref('library')
+const converterOpen = ref(false)
 
 function onImport(files) {
   mobileTab.value = 'preview'
@@ -104,7 +106,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <TopBar @import="onImport" @open-settings="state.settingsOpen = true" @clear-all="onClear" />
+  <TopBar @import="onImport" @open-settings="state.settingsOpen = true" @open-converter="converterOpen = true" @clear-all="onClear" />
 
   <main class="workspace" :data-mobile="mobileTab">
     <LibraryPanel @select="mobileTab = 'preview'" @remove="onRemoveTheme" />
@@ -119,6 +121,7 @@ onMounted(async () => {
   </nav>
 
   <SettingsModal />
+  <ConverterModal :open="converterOpen" @close="converterOpen = false" />
   <ProgressOverlay />
 
   <!-- 同步失败详情弹窗 -->

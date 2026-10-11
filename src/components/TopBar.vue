@@ -1,7 +1,7 @@
 <script setup>
 import { state } from '../lib/store.js'
 
-const emit = defineEmits(['import', 'open-settings', 'clear-all'])
+const emit = defineEmits(['import', 'open-settings', 'open-converter', 'clear-all'])
 
 function onFileChange(event) {
   if (event.target.files?.length) emit('import', event.target.files)
@@ -36,6 +36,7 @@ function onFileChange(event) {
       <span class="badge-text">{{ state.sync.text }}</span>
     </div>
 
+    <button class="btn" @click="emit('open-converter')">转换器</button>
     <button class="btn" @click="emit('open-settings')">设置</button>
     <button class="btn btn-danger" @click="emit('clear-all')">清空</button>
 
